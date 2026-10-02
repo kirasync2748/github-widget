@@ -1,0 +1,71 @@
+# Auto-detect text files and normalize line endings to LF.
+* text=auto eol=lf
+
+# Go source
+*.go    text eol=lf
+
+# Go modules
+go.mod  text eol=lf
+go.sum  text eol=lf
+
+# Documentation
+*.md    text eol=lf
+
+# YAML / JSON config
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+
+# CI workflows
+.github/workflows/**  text eol=lf
+
+# Shell scripts
+scripts/*.sh  text eol=lf
+*.sh          text eol=lf
+
+# Build files
+Makefile          text eol=lf
+Dockerfile        text eol=lf
+Dockerfile.vercel text eol=lf
+
+# Docker Compose
+docker-compose.yml  text eol=lf
+
+# Environment templates
+.env          text eol=lf
+.env.example  text eol=lf
+
+# Git metadata
+.gitattributes  text eol=lf
+.gitignore      text eol=lf
+.golangci.yml   text eol=lf
+
+# Binary assets — never touch line endings
+*.svg   binary
+
+
+# ============================================================
+# GitHub Linguist
+# ============================================================
+
+# Make
+Makefile      linguist-language=Makefile linguist-detectable=true
+*.mk          linguist-language=Makefile linguist-detectable=true
+
+# Docker
+Dockerfile        linguist-language=Dockerfile linguist-detectable=true
+Dockerfile.*      linguist-language=Dockerfile linguist-detectable=true
+
+# Docker Compose
+docker-compose.yml  linguist-language=YAML linguist-detectable=true
+docker-compose.yaml linguist-language=YAML linguist-detectable=true
+
+# YAML
+*.yml   linguist-language=YAML linguist-detectable=true
+*.yaml  linguist-language=YAML linguist-detectable=true
+
+# Shell
+*.sh    linguist-language=Shell linguist-detectable=true
+
+# Go
+*.go    linguist-language=Go linguist-detectable=true

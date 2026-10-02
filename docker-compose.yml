@@ -1,0 +1,33 @@
+# docker-compose.yml — local development with live reload.
+# Uses a Go runtime image with source bind-mount and `go run` for live code changes.
+# Copy .env.example to .env and set GITHUB_TOKEN before running:
+#   cp .env.example .env
+#   docker compose up -d --build
+services:
+  server:
+    image: golang:1.27-alpine
+    working_dir: /src
+    volumes:
+      - .:/src
+      - go-mod-cache:/go/pkg/mod
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - CACHE_TTL=10m
+      - CACHE_MAX_ENTRIES=1000
+      - LOG_LEVEL=info
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    command: ["sh", "-ec", "cd /src && go mod download 2>/dev/null || true && exec go run ./cmd/server"]
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  go-mod-cache:

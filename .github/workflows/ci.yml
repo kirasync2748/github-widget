@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27'
+          cache: true
+
+      - name: Check formatting
+        run: |
+          out=$(gofmt -l .)
+          if [ -n "$out" ]; then
+            echo "Unformatted files:"
+            echo "$out"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Tests
+        run: go test ./...
+
+      - name: Race tests
+        run: go test -race ./...
+
+      - name: Build
+        run: go build -ldflags="-X github.com/kirasync2748/github-widget/internal/version.Version=ci" ./...
