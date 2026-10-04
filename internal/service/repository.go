@@ -59,6 +59,12 @@ func (s *RepositoryService) GetWidgetData(ctx context.Context, owner, repo strin
 		return WidgetData{}, err
 	}
 
+	// Last commit is best-effort: if it can't be fetched, the renderer falls
+	// back to the repository's updated time.
+	if lastCommit, err := s.client.FetchLastCommit(ctx, owner, repo); err == nil {
+		repository.LastCommitAt = lastCommit
+	}
+
 	stats, err := s.client.FetchLanguages(ctx, owner, repo)
 	if err != nil {
 		return WidgetData{}, err

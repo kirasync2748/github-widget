@@ -123,6 +123,32 @@ func TestRenderRepositoryCardNoLanguages(t *testing.T) {
 	}
 }
 
+func TestRelativeTime(t *testing.T) {
+	now := time.Now()
+	cases := []struct {
+		name string
+		at   time.Time
+		want string
+	}{
+		{"seconds", now.Add(-30 * time.Second), "just now"},
+		{"one minute", now.Add(-90 * time.Second), "1 min ago"},
+		{"minutes", now.Add(-5 * time.Minute), "5 mins ago"},
+		{"one hour", now.Add(-90 * time.Minute), "1 hour ago"},
+		{"hours", now.Add(-5 * time.Hour), "5 hours ago"},
+		{"one day", now.Add(-30 * time.Hour), "1 day ago"},
+		{"days", now.Add(-12 * 24 * time.Hour), "12 days ago"},
+		{"one month", now.Add(-45 * 24 * time.Hour), "1 month ago"},
+		{"months", now.Add(-300 * 24 * time.Hour), "10 months ago"},
+		{"one year", now.Add(-400 * 24 * time.Hour), "1 year ago"},
+		{"years", now.Add(-800 * 24 * time.Hour), "2 years ago"},
+	}
+	for _, tc := range cases {
+		if got := relativeTime(tc.at); got != tc.want {
+			t.Errorf("%s: relativeTime = %q, want %q", tc.name, got, tc.want)
+		}
+	}
+}
+
 func TestRenderRepositoryCardThemes(t *testing.T) {
 	repo := github.Repository{Owner: "a", Name: "b", Stars: 1}
 	for name, theme := range Themes {

@@ -34,6 +34,12 @@ func newTestServer(t *testing.T) *httptest.Server {
 					"avatar_url": "https://github.com/octocat.png",
 				},
 			})
+		case r.URL.Path == "/repos/octocat/hello-world/commits":
+			_ = json.NewEncoder(w).Encode([]map[string]any{
+				{"commit": map[string]any{
+					"committer": map[string]string{"date": "2024-06-01T12:00:00Z"},
+				}},
+			})
 		case r.URL.Path == "/repos/octocat/hello-world/languages":
 			_ = json.NewEncoder(w).Encode(map[string]int64{
 				"Go":    7200,
@@ -73,6 +79,11 @@ func TestGetWidgetData(t *testing.T) {
 	}
 	if data.Languages[0].Percentage < 70 || data.Languages[0].Percentage > 73 {
 		t.Errorf("Go percentage = %.1f, expected ~72", data.Languages[0].Percentage)
+	}
+
+	wantCommit := time.Date(2024, 6, 1, 12, 0, 0, 0, time.UTC)
+	if !data.Repository.LastCommitAt.Equal(wantCommit) {
+		t.Errorf("LastCommitAt = %v, want %v", data.Repository.LastCommitAt, wantCommit)
 	}
 }
 

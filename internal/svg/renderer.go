@@ -138,9 +138,13 @@ func RenderRepositoryCard(data github.Repository, langs []github.ComputedLanguag
 	}
 	b.WriteByte('\n')
 
-	// --- Last updated ---
-	if !data.UpdatedAt.IsZero() {
-		updated := relativeTime(data.UpdatedAt)
+	// --- Last updated (prefer the last commit, fall back to updated time) ---
+	updatedAt := data.LastCommitAt
+	if updatedAt.IsZero() {
+		updatedAt = data.UpdatedAt
+	}
+	if !updatedAt.IsZero() {
+		updated := relativeTime(updatedAt)
 		updatedX := w - padX
 		fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Segoe UI,Arial,Helvetica,sans-serif" font-size="11" fill="%s" text-anchor="end">Updated %s</text>`, updatedX, statsY+4, t.MutedText, EscapeXML(updated))
 		b.WriteByte('\n')
@@ -218,21 +222,36 @@ func formatNumber(n int) string {
 	return fmt.Sprintf("%.1fM", float64(n)/1_000_000)
 }
 
-// relativeTime returns a human-readable relative time string.
+// relativeTime returns a human-readable relative time string:
+// "just now", "5 mins ago", "3 hours ago", "12 days ago", "2 months ago", "1 year ago".
 func relativeTime(t time.Time) string {
 	d := time.Since(t)
-	switch {
-	case d < time.Hour:
-		return "just now"
-	case d < 24*time.Hour:
-		return fmt.Sprintf("%d hours ago", int(d.Hours()))
-	case d < 48*time.Hour:
-		return "yesterday"
-	case d < 30*24*time.Hour:
-		return fmt.Sprintf("%d days ago", int(d.Hours()/24))
-	case d < 365*24*time.Hour:
-		return fmt.Sprintf("%d months ago", int(d.Hours()/(24*30)))
-	default:
-		return fmt.Sprintf("%d years ago", int(d.Hours()/(24*365)))
+	if d < 0 {
+		d = 0
 	}
+	switch {
+	case d < time.Minute:
+		return "just now"
+	case d < time.Hour:
+		return ago(int(d.Minutes()), "min")
+	case d < 24*time.Hour:
+		return ago(int(d.Hours()), "hour")
+	case d < 30*24*time.Hour:
+		return ago(int(d.Hours()/24), "day")
+	case d < 365*24*time.Hour:
+		return ago(int(d.Hours()/(24*30)), "month")
+	default:
+		return ago(int(d.Hours()/(24*365)), "year")
+	}
+}
+
+// ago formats a count and unit as "1 day ago" / "3 days ago".
+func ago(n int, unit string) string {
+	if n < 1 {
+		n = 1
+	}
+	if n == 1 {
+		return fmt.Sprintf("1 %s ago", unit)
+	}
+	return fmt.Sprintf("%d %ss ago", n, unit)
 }

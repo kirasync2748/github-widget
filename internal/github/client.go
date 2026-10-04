@@ -108,6 +108,49 @@ func (c *Client) FetchRepository(ctx context.Context, owner, repo string) (Repos
 	return r, nil
 }
 
+// commitResponse is a single element of the raw GitHub
+// /repos/{owner}/{repo}/commits response.
+type commitResponse struct {
+	Commit struct {
+		Author struct {
+			Date string `json:"date"`
+		} `json:"author"`
+		Committer struct {
+			Date string `json:"date"`
+		} `json:"committer"`
+	} `json:"commit"`
+}
+
+// FetchLastCommit retrieves the date of the most recent commit on the
+// repository's default branch. It returns the zero time when the repository
+// has no commits.
+func (c *Client) FetchLastCommit(ctx context.Context, owner, repo string) (time.Time, error) {
+	owner = strings.ToLower(strings.TrimSpace(owner))
+	repo = strings.TrimSpace(repo)
+
+	path := fmt.Sprintf("/repos/%s/%s/commits?per_page=1", owner, repo)
+	var raw []commitResponse
+	if err := c.doJSON(ctx, http.MethodGet, path, &raw); err != nil {
+		return time.Time{}, err
+	}
+	if len(raw) == 0 {
+		return time.Time{}, nil
+	}
+
+	dateStr := raw[0].Commit.Committer.Date
+	if dateStr == "" {
+		dateStr = raw[0].Commit.Author.Date
+	}
+	if dateStr == "" {
+		return time.Time{}, nil
+	}
+	t, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		return time.Time{}, nil
+	}
+	return t, nil
+}
+
 // FetchLanguages retrieves language byte counts for a repository.
 func (c *Client) FetchLanguages(ctx context.Context, owner, repo string) ([]LanguageStat, error) {
 	owner = strings.ToLower(strings.TrimSpace(owner))

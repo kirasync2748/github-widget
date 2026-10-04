@@ -15,7 +15,9 @@ type Repository struct {
 	PrimaryLang string
 	License     string
 	UpdatedAt   time.Time
-	HTMLURL     string
+	// LastCommitAt is the date of the most recent commit. Zero when unknown.
+	LastCommitAt time.Time
+	HTMLURL      string
 }
 
 // LanguageStat represents a single language and its byte count.
